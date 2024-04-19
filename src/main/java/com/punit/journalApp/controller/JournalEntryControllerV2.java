@@ -18,13 +18,11 @@ public class JournalEntryControllerV2 {
 
     @GetMapping
     public List<JournalEntry> getAll() {
-//        return new ArrayList<>(journalEntries.values());
         return this.journalEntrySerivce.getAllJournal();
     }
 
     @PostMapping
     public JournalEntry createEntry(@RequestBody JournalEntry entry) {
-//        journalEntries.put(entry.getId(), entry);
         entry.setDate(LocalDateTime.now());
         this.journalEntrySerivce.saveEntry(entry);
         return entry;
@@ -32,20 +30,17 @@ public class JournalEntryControllerV2 {
 
     @GetMapping("/id/{id}")
     public JournalEntry getEntryById(@PathVariable ObjectId id) {
-//        return journalEntries.get(id);
         return this.journalEntrySerivce.findById(id).orElse(null);
     }
 
     @DeleteMapping("/id/{id}")
     public boolean deleteEntryById(@PathVariable ObjectId id) {
-//        return journalEntries.remove(id);
         this.journalEntrySerivce.deleteById(id);
         return true;
     }
 
     @PutMapping("/id/{id}")
     public JournalEntry updateEntryById(@PathVariable ObjectId id, @RequestBody JournalEntry entry) {
-//        journalEntries.put(id, entry);
         return  this.journalEntrySerivce.updateEntry(id, entry);
     }
 }
