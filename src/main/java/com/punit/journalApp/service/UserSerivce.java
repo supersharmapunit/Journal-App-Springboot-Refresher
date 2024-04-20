@@ -6,9 +6,12 @@ import com.punit.journalApp.repository.JournalEntryRepository;
 import com.punit.journalApp.repository.UserRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,7 +21,11 @@ public class UserSerivce {
     @Autowired
     private UserRepository userRepository;
 
+    private static final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     public void saveEntry(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRoles(Arrays.asList("USER"));
         this.userRepository.save(user);
     }
 
@@ -39,11 +46,15 @@ public class UserSerivce {
         if(userInDB != null) {
             userInDB.setUsername(user.getUsername());
             userInDB.setPassword(user.getPassword());
-            this.userRepository.save(userInDB);
+            this.saveEntry(userInDB);
         }
     }
 
     public User findByUserName(String username) {
         return this.userRepository.findByUsername(username);
+    }
+
+    public void deleteByUsername(String username) {
+        this.userRepository.deleteByUsername(username);
     }
 }
