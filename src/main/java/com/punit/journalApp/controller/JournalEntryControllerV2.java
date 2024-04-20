@@ -1,15 +1,15 @@
 package com.punit.journalApp.controller;
 
 import com.punit.journalApp.entity.JournalEntry;
+import com.punit.journalApp.entity.User;
 import com.punit.journalApp.service.JournalEntrySerivce;
-import org.apache.coyote.Response;
+import com.punit.journalApp.service.UserSerivce;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -18,10 +18,13 @@ public class JournalEntryControllerV2 {
 
     @Autowired
     private JournalEntrySerivce journalEntrySerivce;
+    @Autowired
+    private UserSerivce userSerivce;
 
-    @GetMapping
-    public ResponseEntity<List<JournalEntry>> getAll() {
-        List<JournalEntry> all = this.journalEntrySerivce.getAllJournal();
+    @GetMapping("/{username}")
+    public ResponseEntity<List<JournalEntry>> getAll(@PathVariable String username) {
+        User user = this.userSerivce.findByUserName(username);
+        List<JournalEntry> all = user.getJournalEntries();
         if(all != null && !all.isEmpty()) {
             return new ResponseEntity<>(all, HttpStatus.OK);
         } else {
@@ -29,11 +32,10 @@ public class JournalEntryControllerV2 {
         }
     }
 
-    @PostMapping
-    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry entry) {
-        entry.setDate(LocalDateTime.now());
+    @PostMapping("/{username}")
+    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry entry, @PathVariable String username) {
         try {
-            this.journalEntrySerivce.saveEntry(entry);
+            this.journalEntrySerivce.saveEntry(entry, username);
             return new ResponseEntity<>(entry, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -50,15 +52,15 @@ public class JournalEntryControllerV2 {
         }
     }
 
-    @DeleteMapping("/id/{id}")
-    public ResponseEntity<?> deleteEntryById(@PathVariable ObjectId id) {
-        this.journalEntrySerivce.deleteById(id);
+    @DeleteMapping("/id/{username}/{id}")
+    public ResponseEntity<?> deleteEntryById(@PathVariable ObjectId id, @PathVariable String username) {
+        this.journalEntrySerivce.deleteById(id, username);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping("/id/{id}")
-    public ResponseEntity<?> updateEntryById(@PathVariable ObjectId id, @RequestBody JournalEntry entry) {
-        Optional<JournalEntry> journalEntry = Optional.ofNullable(this.journalEntrySerivce.updateEntry(id, entry));
+    @PutMapping("/id/{username}/{id}")
+    public ResponseEntity<?> updateEntryById(@PathVariable ObjectId id, @PathVariable String username, @RequestBody JournalEntry entry) {
+        Optional<JournalEntry> journalEntry = Optional.ofNullable(this.journalEntrySerivce.updateEntry(id, username,entry));
         if(journalEntry.isPresent()) {
             return new ResponseEntity<>(journalEntry.get(), HttpStatus.OK);
         } else {
